@@ -2,61 +2,18 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <title> websocket go-chat </title>
-   <style>
-      #chatlog {
-            border: 1px solid #ccc;
-            height: 300px;
-            overflow-y: scroll;
-            padding: 10px;
-            font-family: monospace;
-            white-space: pre-wrap;
-      }
-      #msgInput {
-            width: 80% ;
-				height: 100px;
-      }
-      #sendBtn {
-			background-color: rgba(152, 236, 236, 0.968);
-            width: 80%;
-				height: 30px;
-      }
-   </style>
+   <link rel="stylesheet" href="style.css">
+   <title>Go-Chat 🟢</title>
 </head>
 <body>
-
-<h1>Анонимный чат</h1>
+<h1> Go Chat🟢</h1>
 
 <div id="chatlog"></div>
 
-<input id="msgInput" type="text" placeholder="Enter message">
-<button id="sendBtn">Send</button>
+<input type="text" id="msgInput" placeholder="Введите сообщение..." >
+<button  type="button" id="sendBtn">Send</button>
 
-<script>
-let ws = new WebSocket("ws://localhost:8080/ws");
-let chatlog = document.getElementById("chatlog");
-let msgInput = document.getElementById("msgInput");
-let sendBtn = document.getElementById("sendBtn");
+<script src="chat.js"></script>
 
-// Когда приходит сообщение с сервера
-ws.onmessage = (event) => {
-   chatlog.textContent += event.data + "\n";
-    chatlog.scrollTop = chatlog.scrollHeight; // скролл вниз автоматически
-};
-
-// Отправка сообщения по кнопке
-sendBtn.onclick = () => {
-   let text = msgInput.value.trim();
-   if (text) {
-   ws.send(text);
-        msgInput.value = ""; // очищаем поле
-   }
-};
-
-// Отправка по Enter
-msgInput.addEventListener("keydown", (e) => {
-   if (e.key === "Enter") sendBtn.onclick();
-});
-</script>
 </body>
 </html>
