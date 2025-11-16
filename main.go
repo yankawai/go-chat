@@ -51,7 +51,8 @@ func main() {
 	fmt.Println("server hosted on: http://localhost:8080/ws")
 	err := http.ListenAndServe(":8080",nil) 	
 	if err != nil { 
-		panic(err)
+		log.Println(err)
+		return
 	}
 }
 
