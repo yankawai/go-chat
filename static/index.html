@@ -1,17 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Go Chat</title>
-<link rel="stylesheet" href="style.css">
+    <title>Чат</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #intro { text-align: center; margin: 50px; }
+        #chat { display: none; }  /* Скрываем чат до ввода имени */
+        .message { margin: 5px 0; }
+        .username { font-weight: bold; }
+    </style>
 </head>
 <body>
-<h1>Go Chat 🟢</h1>
-<div id="chatlog"></div>
+    <!-- Экран ввода имени -->
+    <div id="intro">
+        <h2>Welcome to open chat!</h2>
+        <p>Enter your name:</p>
+        <input type="text" id="nameInput" placeholder="Your name" maxlength="20">
+        <br><br>
+        <button type="submit" id="connectBtn">Join to channel</button>
+        <p id="error"></p>
+    </div>
 
-<input type="text" id="msgInput" placeholder="Введите сообщение...">
-<button type="submit" id="sendBtn">Отправить</button>
-
-<script src="chat.js"></script>
+    <!-- Чат (скрыт изначально) -->
+    <div id="chat">
+        <div id="chatlog"></div>
+        <input type="text" id="msgInput" placeholder="Write message...">
+        <button type="button" id="sendBtn">Отправить</button>
+    </div>
+    <script src="chat.js"></script>  <!-- My JS файл -->
 </body>
 </html>
