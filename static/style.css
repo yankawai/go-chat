@@ -1,7 +1,23 @@
 /* style.css */
 #intro {
 	text-align: center;
-	margin: 50px;
+	margin: 20px auto 0 auto;
+}
+body {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	min-height: 100vh;
+	margin: 0;
+}
+
+#colorName {
+	margin: 25px;
+	height: 50px;
+	cursor: pointer;
+}
+#intro div {
+	text-align: center;
 }
 
 #chat {

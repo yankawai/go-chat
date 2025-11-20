@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
+
 
 var upgrader = websocket.Upgrader{}            // websocket
 var clients = make(map[*websocket.Conn]string) // global client structure
@@ -20,10 +22,10 @@ func ws(w http.ResponseWriter, r *http.Request) { //  http converter to websocke
 	id := uuid.New().String()
 	clients[c] = id
 
-	log.Println("🟩 Подключен Новый пользователь: ", id)
+	log.Println("✅ Client Connected!")
 	defer func() {
 		delete(clients, c)
-		log.Println("🔌 Пользователь отключился: ", id)
+		log.Println("🔌 Client Disconnected!")
 		c.Close()
 	}()
 
@@ -43,13 +45,24 @@ func ws(w http.ResponseWriter, r *http.Request) { //  http converter to websocke
 	}
 }
 
+
 func main() {
-	http.HandleFunc("/ws", ws)
-	http.Handle("/", http.FileServer(http.Dir("./static")))
-	fmt.Println("server hosted on: http://localhost:8080/ws")
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Println(err)
-		return
+	router  := gin.Default() 
+
+	// Handler for HTML (frontend)
+	router.GET("/", func(c *gin.Context) {
+		c.File("./static/index.html")
+	})
+	router.Static("/static","./static")
+
+	// Websocket 
+	router.GET("/ws",func(c *gin.Context) {
+		ws(c.Writer,c.Request) // http -> websocket [func]
+})
+
+	// Host srver
+	fmt.Println("🏠 Server hosted on: http://localhost:8080/")
+	if err := router.Run(":8080"); err != nil  {
+		log.Fatal("Failed to start server:", err)
 	}
 }

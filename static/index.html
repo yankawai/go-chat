@@ -2,10 +2,10 @@
 <html lang="ru">
 <head>
     <title>Чат</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/style.css">
     <style>
         #intro { text-align: center; margin: 50px; }
-        #chat { display: none; }  /* Скрываем чат до ввода имени */
+        #chat { display: none;}  /* Скрываем чат до ввода имени */
         .message { margin: 5px 0; }
         .username { font-weight: bold; }
     </style>
@@ -14,9 +14,12 @@
     <!-- Экран ввода имени -->
     <div id="intro">
         <h2>Welcome to open chat!</h2>
-        <p>Enter your name:</p>
-        <input type="text" id="nameInput" placeholder="Your name" maxlength="20">
+        <p>enter your name  / choose color:</p>
         <br><br>
+        <div style="display: flex; align-items: center; gap: 5px">
+            <input type="text" id="nameInput" placeholder="Your name" maxlength="20">
+            <input type="color" id="colorName">
+        </div>
         <button type="submit" id="connectBtn">Join to channel</button>
         <p id="error"></p>
     </div>
@@ -27,6 +30,6 @@
         <input type="text" id="msgInput" placeholder="Write message...">
         <button type="button" id="sendBtn">Отправить</button>
     </div>
-    <script src="chat.js"></script>  <!-- My JS файл -->
+    <script src="/static/chat.js"></script>  <!-- My JS файл -->
 </body>
 </html>
