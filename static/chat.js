@@ -54,7 +54,13 @@ ws.onmessage = event => {
 sendBtn.onclick = () => {
 	const message = msgInput.value.trim()
 	if (message === '') return
-	ws.send(JSON.stringify(value))
+	ws.send(
+		JSON.stringify({
+			user: username,
+			color: color,
+			msg: message,
+		})
+	)
 	msgInput.value = ''
 }
 
