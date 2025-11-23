@@ -22,17 +22,18 @@ func WSHandler(hub *Hub ,w http.ResponseWriter, r *http.Request) {
 	log.Println("✅ Client Connected!")
 	// creating user id 
 	id := uuid.New().String()
-
 	// add client in our mini-database [hub]
 	hub.AddClient(c,id)
 
-		// checking user connection: read/send "msg" [CHAT-logic]
-		for { 
+		//  BACKGROUND GOROUTINE checking user connection: read/send "msg" [CHAT-logic] 
+		go func(c *websocket.Conn) { 
+			defer hub.DeleteClient(c)
+			for { 
 			_,msg,err := c.ReadMessage()
 			if err != nil { 
-				hub.DeleteClient(c)
 				break
 			}
 			hub.BroadCast(msg)
 		}
+		}(c)
 }

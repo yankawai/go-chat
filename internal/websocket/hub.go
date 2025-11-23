@@ -30,9 +30,9 @@ func (h *Hub) DeleteClient(c *websocket.Conn)  {
 	c.Close()
 }
 
-//
+// user write messages / checking connections 1,2,3, etc... and sending msg
 func (h *Hub) BroadCast(msg []byte)    { 
-	for conn := range h.Clients.Clients { 
+	for conn := range h.Clients { 
 		if err := conn.WriteMessage(websocket.TextMessage,msg); err != nil { 
 			fmt.Println("[⚠️] Sending Error: ",err)
 		}
