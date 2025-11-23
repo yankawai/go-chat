@@ -17,34 +17,23 @@ let color = null
 ws.onmessage = event => {
 	//
 	try {
-		const payload = JSON.parse(event.data) // <- recieve json
+        const payload = JSON.parse(event.data);
 
-		const msgDiv = document.createElement('div')
-		msgDiv.classList.add('message')
 
-		const data = event.data
-		const separatorIndex = data.indexOf(': ') //
-		if (separatorIndex === -1) {
-			console.error('Invalid message format:', data)
-			return
-		}
+        const msgDiv = document.createElement('div');
+		msgDiv.classList.add('message');
 
-		const sender = data.substring(0, separatorIndex)
-		const text = data.substring(separatorIndex + 2)
 
-		const nameSpan = document.createElement('span')
-		nameSpan.classList.add('username')
-		nameSpan.textContent = payload.sender + ': '
-		nameSpan.style.color = payload.color
-		const senderColor = 0(
-			// custom color for nicknames
-			(nameSpan.style.color = sender === username ? color : '#000	')
-		)
+		const nameSpan = document.createElement('span');
+		nameSpan.classList.add('username');
+		nameSpan.textContent = payload.user; + ": ";
+		nameSpan.style.color = payload.color || "#000";
 
-		msgDiv.appendChild(nameSpan)
-		msgDiv.appendChild(document.createTextNode(text))
-		chatlog.appendChild(msgDiv)
-		chatlog.scrollTop = chatlog.scrollHeight
+		msgDiv.appendChild(nameSpan);
+
+		msgDiv.appendChild(document.createTextNode(': ' + payload.msg));
+		chatlog.appendChild(msgDiv);
+		chatlog.scrollTop = chatlog.scrollHeight;
 	} catch (error) {
 		console.error('Error processing message:', error)
 	}
@@ -54,20 +43,22 @@ ws.onmessage = event => {
 sendBtn.onclick = () => {
 	const message = msgInput.value.trim()
 	if (message === '') return
-	ws.send(
-		JSON.stringify({
-			user: username,
-			color: color,
-			msg: message,
-		})
-	)
+	ws.send(JSON.stringify({
+		user: username,
+		color: color,
+		msg : message,
+	}))
 	msgInput.value = ''
 }
 
 // Choose color button
 colorName.onchange = e => {
 	color = e.target.value
-	console.log('Color has been choosed!')
+	if (!color === '')  {
+		console.log("")
+		return
+	}
+	console.log('[🟣] Color selected: ',color)
 }
 // chanel  button
 connectBtn.onclick = () => {
