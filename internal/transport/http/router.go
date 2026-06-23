@@ -62,7 +62,7 @@ func indexHandler(staticDir string, logger *slog.Logger) http.HandlerFunc {
 			if !errors.Is(err, os.ErrNotExist) {
 				logger.Error("stat index", "path", indexPath, "error", err)
 			}
-			http.Error(w, "index page is not available", http.StatusNotFound)
+			writeError(w, http.StatusNotFound, "index_not_available", "index page is not available")
 			return
 		}
 

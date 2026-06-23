@@ -61,6 +61,25 @@ func TestInfoHandler(t *testing.T) {
 	}
 }
 
+func TestIndexHandlerReturnsJSONWhenIndexMissing(t *testing.T) {
+	router := NewRouter(RouterConfig{StaticDir: t.TempDir()}, http.NotFoundHandler(), slog.Default())
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+
+	var body errorResponse
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode body: %v", err)
+	}
+	if body.Error.Code != "index_not_available" {
+		t.Fatalf("error code = %q, want index_not_available", body.Error.Code)
+	}
+}
+
 func TestIndexHandlerServesStaticIndex(t *testing.T) {
 	staticDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(staticDir, "index.html"), []byte("<html>ok</html>"), 0o600); err != nil {
