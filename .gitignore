@@ -4,6 +4,9 @@
 *.dll
 *.so
 *.dylib
+/bin/
+/server
+/go-chat
 
 # Test binary, built with `go test -c`
 *.test
@@ -25,5 +28,8 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# OS metadata
+.DS_Store
