@@ -84,6 +84,18 @@ func TestRoomRejectsDuplicateClient(t *testing.T) {
 	}
 }
 
+func TestRoomRejectsClientsAboveCapacity(t *testing.T) {
+	room := NewRoomWithConfig(RoomConfig{MaxClients: 1}, slog.Default())
+	if err := room.Register(newFakeClient("client-1")); err != nil {
+		t.Fatalf("Register() first error = %v", err)
+	}
+
+	err := room.Register(newFakeClient("client-2"))
+	if !errors.Is(err, ErrRoomFull) {
+		t.Fatalf("Register() error = %v, want %v", err, ErrRoomFull)
+	}
+}
+
 func TestRoomDropsClientWhenSendFails(t *testing.T) {
 	room := NewRoom(slog.Default())
 	client := newFakeClient("client-1")

@@ -10,6 +10,7 @@ import (
 var (
 	ErrClientAlreadyRegistered = errors.New("client already registered")
 	ErrClientIDRequired        = errors.New("client id is required")
+	ErrRoomFull                = errors.New("room is full")
 )
 
 type Client interface {
@@ -19,10 +20,15 @@ type Client interface {
 }
 
 type Room struct {
-	logger  *slog.Logger
-	mu      sync.RWMutex
-	clients map[string]Client
-	stats   RoomStats
+	logger     *slog.Logger
+	maxClients int
+	mu         sync.RWMutex
+	clients    map[string]Client
+	stats      RoomStats
+}
+
+type RoomConfig struct {
+	MaxClients int
 }
 
 type RoomStats struct {
@@ -34,13 +40,18 @@ type RoomStats struct {
 }
 
 func NewRoom(logger *slog.Logger) *Room {
+	return NewRoomWithConfig(RoomConfig{}, logger)
+}
+
+func NewRoomWithConfig(cfg RoomConfig, logger *slog.Logger) *Room {
 	if logger == nil {
 		logger = slog.Default()
 	}
 
 	return &Room{
-		logger:  logger,
-		clients: make(map[string]Client),
+		logger:     logger,
+		maxClients: cfg.MaxClients,
+		clients:    make(map[string]Client),
 	}
 }
 
@@ -54,6 +65,9 @@ func (r *Room) Register(client Client) error {
 
 	if _, exists := r.clients[client.ID()]; exists {
 		return ErrClientAlreadyRegistered
+	}
+	if r.maxClients > 0 && len(r.clients) >= r.maxClients {
+		return ErrRoomFull
 	}
 
 	r.clients[client.ID()] = client
