@@ -100,8 +100,16 @@ func messagesHandler(history *chat.History) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, "invalid_limit", err.Error())
 			return
 		}
+		after, err := parseUintQuery(r, "after")
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid_after", err.Error())
+			return
+		}
 
 		events := history.List(limit)
+		if after > 0 {
+			events = history.ListAfter(after, limit)
+		}
 		response := make([]messageResponse, 0, len(events))
 		for _, event := range events {
 			response = append(response, messageResponse{
@@ -128,6 +136,20 @@ func parsePositiveIntQuery(r *http.Request, key string) (int, error) {
 	value, err := strconv.Atoi(raw)
 	if err != nil || value <= 0 {
 		return 0, errors.New(key + " must be a positive integer")
+	}
+
+	return value, nil
+}
+
+func parseUintQuery(r *http.Request, key string) (uint64, error) {
+	raw := r.URL.Query().Get(key)
+	if raw == "" {
+		return 0, nil
+	}
+
+	value, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return 0, errors.New(key + " must be an unsigned integer")
 	}
 
 	return value, nil

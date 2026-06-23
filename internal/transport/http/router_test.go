@@ -168,6 +168,36 @@ func TestMessagesHandlerSupportsLimit(t *testing.T) {
 	}
 }
 
+func TestMessagesHandlerSupportsAfter(t *testing.T) {
+	history := chat.NewHistory(10)
+	history.Append(chat.Event{ID: "message-1", Sequence: 1, Type: chat.EventTypeMessage, CreatedAt: time.Now()})
+	history.Append(chat.Event{ID: "message-2", Sequence: 2, Type: chat.EventTypeMessage, CreatedAt: time.Now()})
+
+	router := NewRouter(RouterConfig{History: history}, http.NotFoundHandler(), slog.Default())
+	req := httptest.NewRequest(http.MethodGet, "/api/messages?after=1", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	var body []messageResponse
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode body: %v", err)
+	}
+	if len(body) != 1 || body[0].ID != "message-2" {
+		t.Fatalf("messages = %+v, want only message-2", body)
+	}
+}
+
+func TestMessagesHandlerRejectsInvalidAfter(t *testing.T) {
+	router := NewRouter(RouterConfig{History: chat.NewHistory(10)}, http.NotFoundHandler(), slog.Default())
+	req := httptest.NewRequest(http.MethodGet, "/api/messages?after=-1", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadRequest)
+	}
+}
+
 func TestMessagesHandlerRejectsInvalidLimit(t *testing.T) {
 	router := NewRouter(RouterConfig{History: chat.NewHistory(10)}, http.NotFoundHandler(), slog.Default())
 	req := httptest.NewRequest(http.MethodGet, "/api/messages?limit=bad", nil)
