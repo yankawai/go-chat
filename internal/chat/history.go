@@ -45,6 +45,26 @@ func (h *History) List(limit int) []Event {
 	return events
 }
 
+func (h *History) ListAfter(sequence uint64, limit int) []Event {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	matches := make([]Event, 0, len(h.events))
+	for _, event := range h.events {
+		if event.Sequence > sequence {
+			matches = append(matches, event)
+		}
+	}
+
+	if limit > 0 && limit < len(matches) {
+		matches = matches[len(matches)-limit:]
+	}
+
+	events := make([]Event, len(matches))
+	copy(events, matches)
+	return events
+}
+
 func (h *History) Len() int {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
