@@ -61,6 +61,26 @@ func TestInfoHandler(t *testing.T) {
 	}
 }
 
+func TestAPINotFoundHandler(t *testing.T) {
+	router := NewRouter(RouterConfig{}, http.NotFoundHandler(), slog.Default())
+
+	req := httptest.NewRequest(http.MethodGet, "/api/missing", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+
+	var body errorResponse
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode body: %v", err)
+	}
+	if body.Error.Code != "not_found" {
+		t.Fatalf("error code = %q, want not_found", body.Error.Code)
+	}
+}
+
 func TestIndexHandlerReturnsJSONWhenIndexMissing(t *testing.T) {
 	router := NewRouter(RouterConfig{StaticDir: t.TempDir()}, http.NotFoundHandler(), slog.Default())
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

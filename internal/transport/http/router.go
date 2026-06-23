@@ -28,6 +28,7 @@ func NewRouter(cfg RouterConfig, wsHandler http.Handler, logger *slog.Logger) ht
 	mux.HandleFunc("GET /healthz", healthHandler)
 	mux.HandleFunc("GET /readyz", readyHandler)
 	mux.HandleFunc("GET /api/info", infoHandler(cfg.BuildInfo))
+	mux.HandleFunc("GET /api/", apiNotFoundHandler)
 	mux.Handle("GET /ws", wsHandler)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticDir))))
 	mux.HandleFunc("GET /", indexHandler(cfg.StaticDir, logger))
@@ -39,6 +40,10 @@ func infoHandler(info build.Info) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, info)
 	}
+}
+
+func apiNotFoundHandler(w http.ResponseWriter, _ *http.Request) {
+	writeError(w, http.StatusNotFound, "not_found", "API endpoint was not found")
 }
 
 func healthHandler(w http.ResponseWriter, _ *http.Request) {
