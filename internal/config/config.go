@@ -46,6 +46,7 @@ type WebSocketConfig struct {
 
 type ChatConfig struct {
 	HistoryLimit int
+	MaxClients   int
 	BannedTerms  []string
 }
 
@@ -98,6 +99,10 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	maxClients, err := getInt("CHAT_MAX_CLIENTS", 0)
+	if err != nil {
+		return Config{}, err
+	}
 
 	cfg := Config{
 		AppName:   getString("APP_NAME", "go-chat"),
@@ -122,6 +127,7 @@ func Load() (Config, error) {
 		},
 		Chat: ChatConfig{
 			HistoryLimit: historyLimit,
+			MaxClients:   maxClients,
 			BannedTerms:  splitCSV(os.Getenv("CHAT_BANNED_TERMS")),
 		},
 	}
@@ -143,6 +149,9 @@ func Load() (Config, error) {
 	}
 	if cfg.Chat.HistoryLimit <= 0 {
 		return Config{}, fmt.Errorf("CHAT_HISTORY_LIMIT must be positive")
+	}
+	if cfg.Chat.MaxClients < 0 {
+		return Config{}, fmt.Errorf("CHAT_MAX_CLIENTS must be zero or positive")
 	}
 
 	return cfg, nil

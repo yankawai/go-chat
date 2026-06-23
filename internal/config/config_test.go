@@ -37,6 +37,9 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.Chat.HistoryLimit != 100 {
 		t.Fatalf("HistoryLimit = %d, want 100", cfg.Chat.HistoryLimit)
 	}
+	if cfg.Chat.MaxClients != 0 {
+		t.Fatalf("MaxClients = %d, want 0", cfg.Chat.MaxClients)
+	}
 }
 
 func TestLoadValidatesWebSocketTimers(t *testing.T) {
@@ -69,6 +72,15 @@ func TestLoadValidatesHistoryLimit(t *testing.T) {
 
 func TestLoadValidatesMessageLimit(t *testing.T) {
 	t.Setenv("WS_MESSAGE_LIMIT", "0")
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("Load() error = nil, want validation error")
+	}
+}
+
+func TestLoadValidatesMaxClients(t *testing.T) {
+	t.Setenv("CHAT_MAX_CLIENTS", "-1")
 
 	_, err := Load()
 	if err == nil {
