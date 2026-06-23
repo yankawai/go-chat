@@ -26,6 +26,7 @@ func NewRouter(cfg RouterConfig, wsHandler http.Handler, logger *slog.Logger) ht
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", healthHandler)
+	mux.HandleFunc("GET /readyz", readyHandler)
 	mux.HandleFunc("GET /api/info", infoHandler(cfg.BuildInfo))
 	mux.Handle("GET /ws", wsHandler)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticDir))))
@@ -42,6 +43,10 @@ func infoHandler(info build.Info) http.HandlerFunc {
 
 func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func readyHandler(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
 }
 
 func indexHandler(staticDir string, logger *slog.Logger) http.HandlerFunc {

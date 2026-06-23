@@ -27,6 +27,18 @@ func TestHealthHandler(t *testing.T) {
 	}
 }
 
+func TestReadyHandler(t *testing.T) {
+	router := NewRouter(RouterConfig{}, http.NotFoundHandler(), slog.Default())
+
+	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+
 func TestInfoHandler(t *testing.T) {
 	router := NewRouter(RouterConfig{
 		BuildInfo: build.Info{Service: "go-chat", Version: "test"},
