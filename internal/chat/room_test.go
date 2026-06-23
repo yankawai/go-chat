@@ -42,6 +42,33 @@ func TestRoomStatsReportsActiveClients(t *testing.T) {
 	if stats.ActiveClients != 1 {
 		t.Fatalf("ActiveClients = %d, want 1", stats.ActiveClients)
 	}
+	if stats.TotalConnections != 1 {
+		t.Fatalf("TotalConnections = %d, want 1", stats.TotalConnections)
+	}
+}
+
+func TestRoomStatsTracksBroadcastsAndDisconnections(t *testing.T) {
+	room := NewRoom(slog.Default())
+	if err := room.Register(newFakeClient("client-1")); err != nil {
+		t.Fatalf("Register() error = %v", err)
+	}
+
+	delivered := room.Broadcast(context.Background(), Event{ID: "event-1"})
+	if delivered != 1 {
+		t.Fatalf("Broadcast() delivered = %d, want 1", delivered)
+	}
+	room.Unregister("client-1")
+
+	stats := room.Stats()
+	if stats.TotalBroadcasts != 1 {
+		t.Fatalf("TotalBroadcasts = %d, want 1", stats.TotalBroadcasts)
+	}
+	if stats.TotalDeliveries != 1 {
+		t.Fatalf("TotalDeliveries = %d, want 1", stats.TotalDeliveries)
+	}
+	if stats.TotalDisconnections != 1 {
+		t.Fatalf("TotalDisconnections = %d, want 1", stats.TotalDisconnections)
+	}
 }
 
 func TestRoomRejectsDuplicateClient(t *testing.T) {

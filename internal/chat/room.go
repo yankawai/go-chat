@@ -22,10 +22,15 @@ type Room struct {
 	logger  *slog.Logger
 	mu      sync.RWMutex
 	clients map[string]Client
+	stats   RoomStats
 }
 
 type RoomStats struct {
-	ActiveClients int `json:"activeClients"`
+	ActiveClients       int   `json:"activeClients"`
+	TotalConnections    int64 `json:"totalConnections"`
+	TotalDisconnections int64 `json:"totalDisconnections"`
+	TotalBroadcasts     int64 `json:"totalBroadcasts"`
+	TotalDeliveries     int64 `json:"totalDeliveries"`
 }
 
 func NewRoom(logger *slog.Logger) *Room {
@@ -52,6 +57,7 @@ func (r *Room) Register(client Client) error {
 	}
 
 	r.clients[client.ID()] = client
+	r.stats.TotalConnections++
 	r.logger.Info("client registered", "client_id", client.ID(), "clients", len(r.clients))
 	return nil
 }
@@ -61,6 +67,7 @@ func (r *Room) Unregister(clientID string) {
 	client, exists := r.clients[clientID]
 	if exists {
 		delete(r.clients, clientID)
+		r.stats.TotalDisconnections++
 	}
 	remaining := len(r.clients)
 	r.mu.Unlock()
@@ -88,6 +95,8 @@ func (r *Room) Broadcast(ctx context.Context, event Event) int {
 		delivered++
 	}
 
+	r.recordBroadcast(delivered)
+
 	return delivered
 }
 
@@ -101,9 +110,9 @@ func (r *Room) Stats() RoomStats {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return RoomStats{
-		ActiveClients: len(r.clients),
-	}
+	stats := r.stats
+	stats.ActiveClients = len(r.clients)
+	return stats
 }
 
 func (r *Room) snapshot() []Client {
@@ -116,4 +125,12 @@ func (r *Room) snapshot() []Client {
 	}
 
 	return clients
+}
+
+func (r *Room) recordBroadcast(delivered int) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.stats.TotalBroadcasts++
+	r.stats.TotalDeliveries += int64(delivered)
 }
