@@ -1,0 +1,126 @@
+package chat
+
+import (
+	"errors"
+	"fmt"
+	"regexp"
+	"strings"
+	"sync/atomic"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+const (
+	MaxUserLength    = 20
+	MaxMessageLength = 1000
+	DefaultUserColor = "#111827"
+	systemUser       = "system"
+	systemColor      = "#64748b"
+)
+
+var (
+	ErrEmptyUser      = errors.New("user is required")
+	ErrEmptyMessage   = errors.New("message is required")
+	ErrUserTooLong    = errors.New("user is too long")
+	ErrMessageTooLong = errors.New("message is too long")
+	ErrInvalidUser    = errors.New("user contains unsupported characters")
+	ErrInvalidColor   = errors.New("color must be a hex color")
+
+	hexColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+	userPattern     = regexp.MustCompile(`^[\p{L}\p{N}][\p{L}\p{N}_ .-]*$`)
+)
+
+type ServiceConfig struct {
+	Now       func() time.Time
+	NewID     func() string
+	Moderator Moderator
+}
+
+type Service struct {
+	now       func() time.Time
+	newID     func() string
+	moderator Moderator
+	sequence  atomic.Uint64
+}
+
+func NewService(cfg ServiceConfig) *Service {
+	now := cfg.Now
+	if now == nil {
+		now = time.Now
+	}
+
+	newID := cfg.NewID
+	if newID == nil {
+		newID = func() string {
+			return uuid.NewString()
+		}
+	}
+
+	return &Service{
+		now:       now,
+		newID:     newID,
+		moderator: cfg.Moderator,
+	}
+}
+
+func (s *Service) NewMessage(input MessageInput) (Event, error) {
+	user := collapseWhitespace(input.User)
+	text := collapseWhitespace(input.Text)
+	color := strings.TrimSpace(input.Color)
+
+	switch {
+	case user == "":
+		return Event{}, ErrEmptyUser
+	case text == "":
+		return Event{}, ErrEmptyMessage
+	case runeCount(user) > MaxUserLength:
+		return Event{}, fmt.Errorf("%w: max %d characters", ErrUserTooLong, MaxUserLength)
+	case runeCount(text) > MaxMessageLength:
+		return Event{}, fmt.Errorf("%w: max %d characters", ErrMessageTooLong, MaxMessageLength)
+	case !userPattern.MatchString(user):
+		return Event{}, ErrInvalidUser
+	}
+
+	if color == "" {
+		color = DefaultUserColor
+	}
+	if !hexColorPattern.MatchString(color) {
+		return Event{}, ErrInvalidColor
+	}
+	if s.moderator != nil {
+		if err := s.moderator.Validate(MessageInput{User: user, Color: color, Text: text}); err != nil {
+			return Event{}, err
+		}
+	}
+
+	return Event{
+		ID:        s.newID(),
+		Sequence:  s.sequence.Add(1),
+		Type:      EventTypeMessage,
+		User:      user,
+		Color:     strings.ToLower(color),
+		Text:      text,
+		CreatedAt: s.now().UTC(),
+	}, nil
+}
+
+func (s *Service) SystemNotice(text string) Event {
+	return Event{
+		ID:        s.newID(),
+		Sequence:  s.sequence.Add(1),
+		Type:      EventTypeSystem,
+		User:      systemUser,
+		Color:     systemColor,
+		Text:      strings.TrimSpace(text),
+		CreatedAt: s.now().UTC(),
+	}
+}
+
+func runeCount(value string) int {
+	return len([]rune(value))
+}
+
+func collapseWhitespace(value string) string {
+	return strings.Join(strings.Fields(value), " ")
+}
