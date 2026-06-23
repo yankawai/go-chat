@@ -18,7 +18,7 @@ func TestServiceNewMessageNormalizesValidInput(t *testing.T) {
 	event, err := service.NewMessage(MessageInput{
 		User:  "  yan  ",
 		Color: "#AA00ff",
-		Text:  " hello ",
+		Text:  " hello   world ",
 	})
 	if err != nil {
 		t.Fatalf("NewMessage() error = %v", err)
@@ -36,8 +36,8 @@ func TestServiceNewMessageNormalizesValidInput(t *testing.T) {
 	if event.Color != "#aa00ff" {
 		t.Fatalf("Color = %q, want normalized hex", event.Color)
 	}
-	if event.Text != "hello" {
-		t.Fatalf("Text = %q, want hello", event.Text)
+	if event.Text != "hello world" {
+		t.Fatalf("Text = %q, want hello world", event.Text)
 	}
 	if !event.CreatedAt.Equal(now) {
 		t.Fatalf("CreatedAt = %s, want %s", event.CreatedAt, now)

@@ -60,8 +60,8 @@ func NewService(cfg ServiceConfig) *Service {
 }
 
 func (s *Service) NewMessage(input MessageInput) (Event, error) {
-	user := strings.TrimSpace(input.User)
-	text := strings.TrimSpace(input.Text)
+	user := collapseWhitespace(input.User)
+	text := collapseWhitespace(input.Text)
 	color := strings.TrimSpace(input.Color)
 
 	switch {
@@ -107,4 +107,8 @@ func (s *Service) SystemNotice(text string) Event {
 
 func runeCount(value string) int {
 	return len([]rune(value))
+}
+
+func collapseWhitespace(value string) string {
+	return strings.Join(strings.Fields(value), " ")
 }
