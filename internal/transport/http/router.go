@@ -15,6 +15,7 @@ import (
 type RouterConfig struct {
 	StaticDir string
 	BuildInfo build.Info
+	Room      *chat.Room
 }
 
 func NewRouter(cfg RouterConfig, wsHandler http.Handler, logger *slog.Logger) http.Handler {
@@ -30,6 +31,7 @@ func NewRouter(cfg RouterConfig, wsHandler http.Handler, logger *slog.Logger) ht
 	mux.HandleFunc("GET /readyz", readyHandler)
 	mux.HandleFunc("GET /api/info", infoHandler(cfg.BuildInfo))
 	mux.HandleFunc("GET /api/constraints", constraintsHandler)
+	mux.HandleFunc("GET /api/room", roomHandler(cfg.Room))
 	mux.HandleFunc("GET /api/", apiNotFoundHandler)
 	mux.Handle("GET /ws", wsHandler)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticDir))))
@@ -60,6 +62,16 @@ func constraintsHandler(w http.ResponseWriter, _ *http.Request) {
 		MaxMessageLength: chat.MaxMessageLength,
 		DefaultColor:     chat.DefaultUserColor,
 	})
+}
+
+func roomHandler(room *chat.Room) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		if room == nil {
+			writeError(w, http.StatusServiceUnavailable, "room_unavailable", "chat room is not available")
+			return
+		}
+		writeJSON(w, http.StatusOK, room.Stats())
+	}
 }
 
 func healthHandler(w http.ResponseWriter, _ *http.Request) {

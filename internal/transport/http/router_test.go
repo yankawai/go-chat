@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/yankawai/go-chat/internal/build"
+	"github.com/yankawai/go-chat/internal/chat"
 )
 
 func TestHealthHandler(t *testing.T) {
@@ -97,6 +98,26 @@ func TestConstraintsHandler(t *testing.T) {
 	}
 	if body.MaxUserLength == 0 || body.MaxMessageLength == 0 || body.DefaultColor == "" {
 		t.Fatalf("constraints response is incomplete: %+v", body)
+	}
+}
+
+func TestRoomHandler(t *testing.T) {
+	room := chat.NewRoom(slog.Default())
+	router := NewRouter(RouterConfig{Room: room}, http.NotFoundHandler(), slog.Default())
+	req := httptest.NewRequest(http.MethodGet, "/api/room", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	var body chat.RoomStats
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode body: %v", err)
+	}
+	if body.ActiveClients != 0 {
+		t.Fatalf("ActiveClients = %d, want 0", body.ActiveClients)
 	}
 }
 

@@ -41,6 +41,7 @@ func main() {
 	router := httptransport.NewRouter(httptransport.RouterConfig{
 		StaticDir: cfg.StaticDir,
 		BuildInfo: build.NewInfo(cfg.AppName),
+		Room:      room,
 	}, wsHandler, logger.With("component", "http"))
 
 	server := &http.Server{
