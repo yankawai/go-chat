@@ -53,6 +53,9 @@ func TestHandlerBroadcastsMessages(t *testing.T) {
 		if event.ID != "message-id" {
 			t.Fatalf("ID = %q, want message-id", event.ID)
 		}
+		if event.Sequence != 1 {
+			t.Fatalf("Sequence = %d, want 1", event.Sequence)
+		}
 		if event.Type != string(chat.EventTypeMessage) {
 			t.Fatalf("Type = %q, want %q", event.Type, chat.EventTypeMessage)
 		}

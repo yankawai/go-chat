@@ -27,6 +27,9 @@ func TestServiceNewMessageNormalizesValidInput(t *testing.T) {
 	if event.ID != "message-id" {
 		t.Fatalf("ID = %q, want message-id", event.ID)
 	}
+	if event.Sequence != 1 {
+		t.Fatalf("Sequence = %d, want 1", event.Sequence)
+	}
 	if event.User != "yan" {
 		t.Fatalf("User = %q, want yan", event.User)
 	}
@@ -51,6 +54,23 @@ func TestServiceNewMessageDefaultsColor(t *testing.T) {
 
 	if event.Color != DefaultUserColor {
 		t.Fatalf("Color = %q, want %q", event.Color, DefaultUserColor)
+	}
+}
+
+func TestServiceAssignsMonotonicSequences(t *testing.T) {
+	service := NewService(ServiceConfig{NewID: func() string { return "id" }})
+
+	first, err := service.NewMessage(MessageInput{User: "yan", Text: "one"})
+	if err != nil {
+		t.Fatalf("NewMessage() first error = %v", err)
+	}
+	second, err := service.NewMessage(MessageInput{User: "yan", Text: "two"})
+	if err != nil {
+		t.Fatalf("NewMessage() second error = %v", err)
+	}
+
+	if first.Sequence != 1 || second.Sequence != 2 {
+		t.Fatalf("sequences = %d,%d, want 1,2", first.Sequence, second.Sequence)
 	}
 }
 

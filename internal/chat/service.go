@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,8 +35,9 @@ type ServiceConfig struct {
 }
 
 type Service struct {
-	now   func() time.Time
-	newID func() string
+	now      func() time.Time
+	newID    func() string
+	sequence atomic.Uint64
 }
 
 func NewService(cfg ServiceConfig) *Service {
@@ -82,6 +84,7 @@ func (s *Service) NewMessage(input MessageInput) (Event, error) {
 
 	return Event{
 		ID:        s.newID(),
+		Sequence:  s.sequence.Add(1),
 		Type:      EventTypeMessage,
 		User:      user,
 		Color:     strings.ToLower(color),
@@ -93,6 +96,7 @@ func (s *Service) NewMessage(input MessageInput) (Event, error) {
 func (s *Service) SystemNotice(text string) Event {
 	return Event{
 		ID:        s.newID(),
+		Sequence:  s.sequence.Add(1),
 		Type:      EventTypeSystem,
 		User:      systemUser,
 		Color:     systemColor,

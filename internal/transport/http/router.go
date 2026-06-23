@@ -80,6 +80,7 @@ func roomHandler(room *chat.Room) http.HandlerFunc {
 
 type messageResponse struct {
 	ID        string `json:"id"`
+	Sequence  uint64 `json:"sequence"`
 	Type      string `json:"type"`
 	User      string `json:"user"`
 	Color     string `json:"color,omitempty"`
@@ -105,6 +106,7 @@ func messagesHandler(history *chat.History) http.HandlerFunc {
 		for _, event := range events {
 			response = append(response, messageResponse{
 				ID:        event.ID,
+				Sequence:  event.Sequence,
 				Type:      string(event.Type),
 				User:      event.User,
 				Color:     event.Color,

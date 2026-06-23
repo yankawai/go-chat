@@ -11,6 +11,7 @@ const (
 
 type Event struct {
 	ID        string
+	Sequence  uint64
 	Type      EventType
 	User      string
 	Color     string
