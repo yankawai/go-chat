@@ -84,6 +84,7 @@ func TestServiceNewMessageRejectsInvalidInput(t *testing.T) {
 	}{
 		{name: "empty user", input: MessageInput{Text: "hello"}, err: ErrEmptyUser},
 		{name: "empty text", input: MessageInput{User: "yan"}, err: ErrEmptyMessage},
+		{name: "invalid user", input: MessageInput{User: "<script>", Text: "hello"}, err: ErrInvalidUser},
 		{name: "invalid color", input: MessageInput{User: "yan", Color: "red", Text: "hello"}, err: ErrInvalidColor},
 		{name: "long user", input: MessageInput{User: "123456789012345678901", Text: "hello"}, err: ErrUserTooLong},
 		{name: "long message", input: MessageInput{User: "yan", Text: stringOfRunes(MaxMessageLength + 1)}, err: ErrMessageTooLong},

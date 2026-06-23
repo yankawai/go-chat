@@ -24,9 +24,11 @@ var (
 	ErrEmptyMessage   = errors.New("message is required")
 	ErrUserTooLong    = errors.New("user is too long")
 	ErrMessageTooLong = errors.New("message is too long")
+	ErrInvalidUser    = errors.New("user contains unsupported characters")
 	ErrInvalidColor   = errors.New("color must be a hex color")
 
 	hexColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+	userPattern     = regexp.MustCompile(`^[\p{L}\p{N}][\p{L}\p{N}_ .-]*$`)
 )
 
 type ServiceConfig struct {
@@ -73,6 +75,8 @@ func (s *Service) NewMessage(input MessageInput) (Event, error) {
 		return Event{}, fmt.Errorf("%w: max %d characters", ErrUserTooLong, MaxUserLength)
 	case runeCount(text) > MaxMessageLength:
 		return Event{}, fmt.Errorf("%w: max %d characters", ErrMessageTooLong, MaxMessageLength)
+	case !userPattern.MatchString(user):
+		return Event{}, ErrInvalidUser
 	}
 
 	if color == "" {
