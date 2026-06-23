@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/yankawai/go-chat/internal/build"
@@ -87,13 +88,19 @@ type messageResponse struct {
 }
 
 func messagesHandler(history *chat.History) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if history == nil {
 			writeError(w, http.StatusServiceUnavailable, "history_unavailable", "chat history is not available")
 			return
 		}
 
-		events := history.List(0)
+		limit, err := parsePositiveIntQuery(r, "limit")
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid_limit", err.Error())
+			return
+		}
+
+		events := history.List(limit)
 		response := make([]messageResponse, 0, len(events))
 		for _, event := range events {
 			response = append(response, messageResponse{
@@ -108,6 +115,20 @@ func messagesHandler(history *chat.History) http.HandlerFunc {
 
 		writeJSON(w, http.StatusOK, response)
 	}
+}
+
+func parsePositiveIntQuery(r *http.Request, key string) (int, error) {
+	raw := r.URL.Query().Get(key)
+	if raw == "" {
+		return 0, nil
+	}
+
+	value, err := strconv.Atoi(raw)
+	if err != nil || value <= 0 {
+		return 0, errors.New(key + " must be a positive integer")
+	}
+
+	return value, nil
 }
 
 func healthHandler(w http.ResponseWriter, _ *http.Request) {
