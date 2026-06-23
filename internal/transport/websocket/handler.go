@@ -32,10 +32,11 @@ type Handler struct {
 	upgrader websocket.Upgrader
 	service  *chat.Service
 	room     *chat.Room
+	history  *chat.History
 	logger   *slog.Logger
 }
 
-func NewHandler(cfg HandlerConfig, service *chat.Service, room *chat.Room, logger *slog.Logger) *Handler {
+func NewHandler(cfg HandlerConfig, service *chat.Service, room *chat.Room, history *chat.History, logger *slog.Logger) *Handler {
 	if cfg.ReadLimit <= 0 {
 		cfg.ReadLimit = defaultReadLimit
 	}
@@ -59,6 +60,7 @@ func NewHandler(cfg HandlerConfig, service *chat.Service, room *chat.Room, logge
 		cfg:     cfg,
 		service: service,
 		room:    room,
+		history: history,
 		logger:  logger,
 	}
 	handler.upgrader = websocket.Upgrader{
@@ -135,6 +137,9 @@ func (h *Handler) readLoop(ctx context.Context, client *client) {
 		}
 
 		h.room.Broadcast(ctx, event)
+		if h.history != nil {
+			h.history.Append(event)
+		}
 	}
 }
 

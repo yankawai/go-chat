@@ -29,6 +29,7 @@ func main() {
 
 	chatService := chat.NewService(chat.ServiceConfig{})
 	room := chat.NewRoom(logger.With("component", "chat_room"))
+	history := chat.NewHistory(cfg.Chat.HistoryLimit)
 	wsHandler := wstransport.NewHandler(wstransport.HandlerConfig{
 		AllowedOrigins: cfg.WebSocket.AllowedOrigins,
 		PingPeriod:     cfg.WebSocket.PingPeriod,
@@ -36,7 +37,7 @@ func main() {
 		ReadLimit:      cfg.WebSocket.ReadLimit,
 		SendQueueSize:  cfg.WebSocket.SendQueueSize,
 		WriteWait:      cfg.WebSocket.WriteWait,
-	}, chatService, room, logger.With("component", "websocket"))
+	}, chatService, room, history, logger.With("component", "websocket"))
 
 	router := httptransport.NewRouter(httptransport.RouterConfig{
 		StaticDir: cfg.StaticDir,

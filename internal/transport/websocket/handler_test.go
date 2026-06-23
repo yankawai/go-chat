@@ -20,13 +20,14 @@ func TestHandlerBroadcastsMessages(t *testing.T) {
 		},
 	})
 	room := chat.NewRoom(slog.Default())
+	history := chat.NewHistory(10)
 	handler := NewHandler(HandlerConfig{
 		PingPeriod:    time.Second,
 		PongWait:      2 * time.Second,
 		WriteWait:     time.Second,
 		SendQueueSize: 4,
 		ReadLimit:     1024,
-	}, service, room, slog.Default())
+	}, service, room, history, slog.Default())
 
 	server := httptest.NewServer(handler)
 	defer server.Close()
@@ -67,6 +68,10 @@ func TestHandlerBroadcastsMessages(t *testing.T) {
 		if event.CreatedAt != now.Format(time.RFC3339Nano) {
 			t.Fatalf("CreatedAt = %q, want %q", event.CreatedAt, now.Format(time.RFC3339Nano))
 		}
+	}
+
+	if history.Len() != 1 {
+		t.Fatalf("history len = %d, want 1", history.Len())
 	}
 }
 
