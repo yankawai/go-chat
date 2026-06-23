@@ -81,6 +81,25 @@ func TestAPINotFoundHandler(t *testing.T) {
 	}
 }
 
+func TestConstraintsHandler(t *testing.T) {
+	router := NewRouter(RouterConfig{}, http.NotFoundHandler(), slog.Default())
+	req := httptest.NewRequest(http.MethodGet, "/api/constraints", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	var body constraintsResponse
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode body: %v", err)
+	}
+	if body.MaxUserLength == 0 || body.MaxMessageLength == 0 || body.DefaultColor == "" {
+		t.Fatalf("constraints response is incomplete: %+v", body)
+	}
+}
+
 func TestIndexHandlerReturnsJSONWhenIndexMissing(t *testing.T) {
 	router := NewRouter(RouterConfig{StaticDir: t.TempDir()}, http.NotFoundHandler(), slog.Default())
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

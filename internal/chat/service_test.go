@@ -49,8 +49,8 @@ func TestServiceNewMessageDefaultsColor(t *testing.T) {
 		t.Fatalf("NewMessage() error = %v", err)
 	}
 
-	if event.Color != defaultUserColor {
-		t.Fatalf("Color = %q, want %q", event.Color, defaultUserColor)
+	if event.Color != DefaultUserColor {
+		t.Fatalf("Color = %q, want %q", event.Color, DefaultUserColor)
 	}
 }
 

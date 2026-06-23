@@ -13,7 +13,7 @@ import (
 const (
 	MaxUserLength    = 20
 	MaxMessageLength = 1000
-	defaultUserColor = "#111827"
+	DefaultUserColor = "#111827"
 	systemUser       = "system"
 	systemColor      = "#64748b"
 )
@@ -74,7 +74,7 @@ func (s *Service) NewMessage(input MessageInput) (Event, error) {
 	}
 
 	if color == "" {
-		color = defaultUserColor
+		color = DefaultUserColor
 	}
 	if !hexColorPattern.MatchString(color) {
 		return Event{}, ErrInvalidColor
