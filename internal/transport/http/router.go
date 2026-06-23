@@ -33,7 +33,7 @@ func NewRouter(cfg RouterConfig, wsHandler http.Handler, logger *slog.Logger) ht
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticDir))))
 	mux.HandleFunc("GET /", indexHandler(cfg.StaticDir, logger))
 
-	return requestID(securityHeaders(mux))
+	return requestID(accessLog(securityHeaders(mux), logger))
 }
 
 func infoHandler(info build.Info) http.HandlerFunc {
