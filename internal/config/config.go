@@ -23,6 +23,7 @@ type Config struct {
 	LogLevel  slog.Level
 	HTTP      HTTPConfig
 	WebSocket WebSocketConfig
+	Chat      ChatConfig
 }
 
 type HTTPConfig struct {
@@ -39,6 +40,10 @@ type WebSocketConfig struct {
 	WriteWait      time.Duration
 	PongWait       time.Duration
 	PingPeriod     time.Duration
+}
+
+type ChatConfig struct {
+	HistoryLimit int
 }
 
 func Load() (Config, error) {
@@ -78,6 +83,10 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	historyLimit, err := getInt("CHAT_HISTORY_LIMIT", 100)
+	if err != nil {
+		return Config{}, err
+	}
 
 	cfg := Config{
 		AppName:   getString("APP_NAME", "go-chat"),
@@ -98,6 +107,9 @@ func Load() (Config, error) {
 			PongWait:       pongWait,
 			PingPeriod:     pingPeriod,
 		},
+		Chat: ChatConfig{
+			HistoryLimit: historyLimit,
+		},
 	}
 
 	if cfg.WebSocket.ReadLimit <= 0 {
@@ -108,6 +120,9 @@ func Load() (Config, error) {
 	}
 	if cfg.WebSocket.PingPeriod >= cfg.WebSocket.PongWait {
 		return Config{}, fmt.Errorf("WS_PING_PERIOD must be lower than WS_PONG_WAIT")
+	}
+	if cfg.Chat.HistoryLimit <= 0 {
+		return Config{}, fmt.Errorf("CHAT_HISTORY_LIMIT must be positive")
 	}
 
 	return cfg, nil
