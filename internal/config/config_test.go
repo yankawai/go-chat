@@ -22,6 +22,9 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.HTTPAddr != defaultHTTPAddr {
 		t.Fatalf("HTTPAddr = %q, want %q", cfg.HTTPAddr, defaultHTTPAddr)
 	}
+	if cfg.AppName != "go-chat" {
+		t.Fatalf("AppName = %q, want go-chat", cfg.AppName)
+	}
 	if cfg.StaticDir != defaultStaticDir {
 		t.Fatalf("StaticDir = %q, want %q", cfg.StaticDir, defaultStaticDir)
 	}

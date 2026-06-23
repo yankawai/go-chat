@@ -17,6 +17,7 @@ const (
 )
 
 type Config struct {
+	AppName   string
 	HTTPAddr  string
 	StaticDir string
 	LogLevel  slog.Level
@@ -79,6 +80,7 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
+		AppName:   getString("APP_NAME", "go-chat"),
 		HTTPAddr:  getString("HTTP_ADDR", defaultHTTPAddr),
 		StaticDir: getString("STATIC_DIR", defaultStaticDir),
 		LogLevel:  parseLogLevel(getString("LOG_LEVEL", "info")),
