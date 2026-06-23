@@ -30,7 +30,9 @@ func main() {
 	chatService := chat.NewService(chat.ServiceConfig{
 		Moderator: chat.NewBannedTermsModerator(cfg.Chat.BannedTerms),
 	})
-	room := chat.NewRoom(logger.With("component", "chat_room"))
+	room := chat.NewRoomWithConfig(chat.RoomConfig{
+		MaxClients: cfg.Chat.MaxClients,
+	}, logger.With("component", "chat_room"))
 	history := chat.NewHistory(cfg.Chat.HistoryLimit)
 	wsHandler := wstransport.NewHandler(wstransport.HandlerConfig{
 		AllowedOrigins: cfg.WebSocket.AllowedOrigins,
