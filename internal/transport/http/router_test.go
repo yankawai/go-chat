@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/yankawai/go-chat/internal/build"
 	"github.com/yankawai/go-chat/internal/chat"
@@ -118,6 +119,33 @@ func TestRoomHandler(t *testing.T) {
 	}
 	if body.ActiveClients != 0 {
 		t.Fatalf("ActiveClients = %d, want 0", body.ActiveClients)
+	}
+}
+
+func TestMessagesHandler(t *testing.T) {
+	history := chat.NewHistory(10)
+	history.Append(chat.Event{
+		ID:        "message-1",
+		Type:      chat.EventTypeMessage,
+		User:      "yan",
+		Text:      "hello",
+		CreatedAt: time.Date(2026, 6, 23, 10, 0, 0, 0, time.UTC),
+	})
+	router := NewRouter(RouterConfig{History: history}, http.NotFoundHandler(), slog.Default())
+	req := httptest.NewRequest(http.MethodGet, "/api/messages", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	var body []messageResponse
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatalf("decode body: %v", err)
+	}
+	if len(body) != 1 || body[0].ID != "message-1" {
+		t.Fatalf("messages = %+v, want message-1", body)
 	}
 }
 

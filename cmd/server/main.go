@@ -43,6 +43,7 @@ func main() {
 		StaticDir: cfg.StaticDir,
 		BuildInfo: build.NewInfo(cfg.AppName),
 		Room:      room,
+		History:   history,
 	}, wsHandler, logger.With("component", "http"))
 
 	server := &http.Server{

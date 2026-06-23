@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/yankawai/go-chat/internal/build"
 	"github.com/yankawai/go-chat/internal/chat"
@@ -16,6 +17,7 @@ type RouterConfig struct {
 	StaticDir string
 	BuildInfo build.Info
 	Room      *chat.Room
+	History   *chat.History
 }
 
 func NewRouter(cfg RouterConfig, wsHandler http.Handler, logger *slog.Logger) http.Handler {
@@ -32,6 +34,7 @@ func NewRouter(cfg RouterConfig, wsHandler http.Handler, logger *slog.Logger) ht
 	mux.HandleFunc("GET /api/info", infoHandler(cfg.BuildInfo))
 	mux.HandleFunc("GET /api/constraints", constraintsHandler)
 	mux.HandleFunc("GET /api/room", roomHandler(cfg.Room))
+	mux.HandleFunc("GET /api/messages", messagesHandler(cfg.History))
 	mux.HandleFunc("GET /api/", apiNotFoundHandler)
 	mux.Handle("GET /ws", wsHandler)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticDir))))
@@ -71,6 +74,39 @@ func roomHandler(room *chat.Room) http.HandlerFunc {
 			return
 		}
 		writeJSON(w, http.StatusOK, room.Stats())
+	}
+}
+
+type messageResponse struct {
+	ID        string `json:"id"`
+	Type      string `json:"type"`
+	User      string `json:"user"`
+	Color     string `json:"color,omitempty"`
+	Text      string `json:"text"`
+	CreatedAt string `json:"createdAt"`
+}
+
+func messagesHandler(history *chat.History) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		if history == nil {
+			writeError(w, http.StatusServiceUnavailable, "history_unavailable", "chat history is not available")
+			return
+		}
+
+		events := history.List(0)
+		response := make([]messageResponse, 0, len(events))
+		for _, event := range events {
+			response = append(response, messageResponse{
+				ID:        event.ID,
+				Type:      string(event.Type),
+				User:      event.User,
+				Color:     event.Color,
+				Text:      event.Text,
+				CreatedAt: event.CreatedAt.Format(time.RFC3339Nano),
+			})
+		}
+
+		writeJSON(w, http.StatusOK, response)
 	}
 }
 
