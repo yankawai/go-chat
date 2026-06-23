@@ -27,6 +27,8 @@ func TestHandlerBroadcastsMessages(t *testing.T) {
 		WriteWait:     time.Second,
 		SendQueueSize: 4,
 		ReadLimit:     1024,
+		MessageLimit:  10,
+		MessageWindow: time.Second,
 	}, service, room, history, slog.Default())
 
 	server := httptest.NewServer(handler)

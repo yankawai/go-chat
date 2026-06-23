@@ -39,6 +39,8 @@ func main() {
 		ReadLimit:      cfg.WebSocket.ReadLimit,
 		SendQueueSize:  cfg.WebSocket.SendQueueSize,
 		WriteWait:      cfg.WebSocket.WriteWait,
+		MessageLimit:   cfg.WebSocket.MessageLimit,
+		MessageWindow:  cfg.WebSocket.MessageWindow,
 	}, chatService, room, history, logger.With("component", "websocket"))
 
 	router := httptransport.NewRouter(httptransport.RouterConfig{

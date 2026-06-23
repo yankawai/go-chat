@@ -16,6 +16,8 @@ import (
 const (
 	defaultReadLimit     = int64(4096)
 	defaultSendQueueSize = 32
+	defaultMessageLimit  = 20
+	defaultMessageWindow = 10 * time.Second
 )
 
 type HandlerConfig struct {
@@ -25,6 +27,8 @@ type HandlerConfig struct {
 	WriteWait      time.Duration
 	PongWait       time.Duration
 	PingPeriod     time.Duration
+	MessageLimit   int
+	MessageWindow  time.Duration
 }
 
 type Handler struct {
@@ -51,6 +55,12 @@ func NewHandler(cfg HandlerConfig, service *chat.Service, room *chat.Room, histo
 	}
 	if cfg.PingPeriod <= 0 {
 		cfg.PingPeriod = (cfg.PongWait * 9) / 10
+	}
+	if cfg.MessageLimit <= 0 {
+		cfg.MessageLimit = defaultMessageLimit
+	}
+	if cfg.MessageWindow <= 0 {
+		cfg.MessageWindow = defaultMessageWindow
 	}
 	if logger == nil {
 		logger = slog.Default()
@@ -97,11 +107,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.room.Unregister(client.ID())
 	}()
 
-	h.readLoop(r.Context(), client)
+	limiter := newRateLimiter(h.cfg.MessageLimit, h.cfg.MessageWindow, nil)
+	h.readLoop(r.Context(), client, limiter)
 	h.room.Unregister(client.ID())
 }
 
-func (h *Handler) readLoop(ctx context.Context, client *client) {
+func (h *Handler) readLoop(ctx context.Context, client *client, limiter *rateLimiter) {
 	defer h.logger.Info("client reader stopped", "client_id", client.ID())
 
 	client.conn.SetReadLimit(h.cfg.ReadLimit)
@@ -120,6 +131,14 @@ func (h *Handler) readLoop(ctx context.Context, client *client) {
 				h.logger.Warn("read websocket message", "client_id", client.ID(), "error", err)
 			}
 			return
+		}
+		if !limiter.Allow() {
+			notice := h.service.SystemNotice("message rejected: rate limit exceeded")
+			if sendErr := client.Send(ctx, notice); sendErr != nil {
+				h.logger.Warn("send rate limit notice", "client_id", client.ID(), "error", sendErr)
+				return
+			}
+			continue
 		}
 
 		event, err := h.service.NewMessage(chat.MessageInput{
