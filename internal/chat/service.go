@@ -32,14 +32,16 @@ var (
 )
 
 type ServiceConfig struct {
-	Now   func() time.Time
-	NewID func() string
+	Now       func() time.Time
+	NewID     func() string
+	Moderator Moderator
 }
 
 type Service struct {
-	now      func() time.Time
-	newID    func() string
-	sequence atomic.Uint64
+	now       func() time.Time
+	newID     func() string
+	moderator Moderator
+	sequence  atomic.Uint64
 }
 
 func NewService(cfg ServiceConfig) *Service {
@@ -56,8 +58,9 @@ func NewService(cfg ServiceConfig) *Service {
 	}
 
 	return &Service{
-		now:   now,
-		newID: newID,
+		now:       now,
+		newID:     newID,
+		moderator: cfg.Moderator,
 	}
 }
 
@@ -84,6 +87,11 @@ func (s *Service) NewMessage(input MessageInput) (Event, error) {
 	}
 	if !hexColorPattern.MatchString(color) {
 		return Event{}, ErrInvalidColor
+	}
+	if s.moderator != nil {
+		if err := s.moderator.Validate(MessageInput{User: user, Color: color, Text: text}); err != nil {
+			return Event{}, err
+		}
 	}
 
 	return Event{

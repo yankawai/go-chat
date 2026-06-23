@@ -74,6 +74,19 @@ func TestServiceAssignsMonotonicSequences(t *testing.T) {
 	}
 }
 
+func TestServiceAppliesModerator(t *testing.T) {
+	service := NewService(ServiceConfig{
+		Moderator: ModeratorFunc(func(MessageInput) error {
+			return ErrMessageBlocked
+		}),
+	})
+
+	_, err := service.NewMessage(MessageInput{User: "yan", Text: "blocked"})
+	if !errors.Is(err, ErrMessageBlocked) {
+		t.Fatalf("NewMessage() error = %v, want %v", err, ErrMessageBlocked)
+	}
+}
+
 func TestServiceNewMessageRejectsInvalidInput(t *testing.T) {
 	service := NewService(ServiceConfig{})
 
