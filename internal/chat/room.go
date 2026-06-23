@@ -24,6 +24,10 @@ type Room struct {
 	clients map[string]Client
 }
 
+type RoomStats struct {
+	ActiveClients int `json:"activeClients"`
+}
+
 func NewRoom(logger *slog.Logger) *Room {
 	if logger == nil {
 		logger = slog.Default()
@@ -91,6 +95,15 @@ func (r *Room) Count() int {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return len(r.clients)
+}
+
+func (r *Room) Stats() RoomStats {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return RoomStats{
+		ActiveClients: len(r.clients),
+	}
 }
 
 func (r *Room) snapshot() []Client {

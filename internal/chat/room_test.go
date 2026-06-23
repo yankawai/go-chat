@@ -32,6 +32,18 @@ func TestRoomRegisterBroadcastAndUnregister(t *testing.T) {
 	}
 }
 
+func TestRoomStatsReportsActiveClients(t *testing.T) {
+	room := NewRoom(slog.Default())
+	if err := room.Register(newFakeClient("client-1")); err != nil {
+		t.Fatalf("Register() error = %v", err)
+	}
+
+	stats := room.Stats()
+	if stats.ActiveClients != 1 {
+		t.Fatalf("ActiveClients = %d, want 1", stats.ActiveClients)
+	}
+}
+
 func TestRoomRejectsDuplicateClient(t *testing.T) {
 	room := NewRoom(slog.Default())
 
