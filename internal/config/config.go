@@ -40,6 +40,8 @@ type WebSocketConfig struct {
 	WriteWait      time.Duration
 	PongWait       time.Duration
 	PingPeriod     time.Duration
+	MessageLimit   int
+	MessageWindow  time.Duration
 }
 
 type ChatConfig struct {
@@ -88,6 +90,14 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	messageLimit, err := getInt("WS_MESSAGE_LIMIT", 20)
+	if err != nil {
+		return Config{}, err
+	}
+	messageWindow, err := getDuration("WS_MESSAGE_WINDOW", 10*time.Second)
+	if err != nil {
+		return Config{}, err
+	}
 
 	cfg := Config{
 		AppName:   getString("APP_NAME", "go-chat"),
@@ -107,6 +117,8 @@ func Load() (Config, error) {
 			WriteWait:      writeWait,
 			PongWait:       pongWait,
 			PingPeriod:     pingPeriod,
+			MessageLimit:   messageLimit,
+			MessageWindow:  messageWindow,
 		},
 		Chat: ChatConfig{
 			HistoryLimit: historyLimit,
@@ -122,6 +134,12 @@ func Load() (Config, error) {
 	}
 	if cfg.WebSocket.PingPeriod >= cfg.WebSocket.PongWait {
 		return Config{}, fmt.Errorf("WS_PING_PERIOD must be lower than WS_PONG_WAIT")
+	}
+	if cfg.WebSocket.MessageLimit <= 0 {
+		return Config{}, fmt.Errorf("WS_MESSAGE_LIMIT must be positive")
+	}
+	if cfg.WebSocket.MessageWindow <= 0 {
+		return Config{}, fmt.Errorf("WS_MESSAGE_WINDOW must be positive")
 	}
 	if cfg.Chat.HistoryLimit <= 0 {
 		return Config{}, fmt.Errorf("CHAT_HISTORY_LIMIT must be positive")

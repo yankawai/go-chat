@@ -31,6 +31,9 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.WebSocket.ReadLimit != defaultReadLimit {
 		t.Fatalf("ReadLimit = %d, want %d", cfg.WebSocket.ReadLimit, defaultReadLimit)
 	}
+	if cfg.WebSocket.MessageLimit != 20 {
+		t.Fatalf("MessageLimit = %d, want 20", cfg.WebSocket.MessageLimit)
+	}
 	if cfg.Chat.HistoryLimit != 100 {
 		t.Fatalf("HistoryLimit = %d, want 100", cfg.Chat.HistoryLimit)
 	}
@@ -57,6 +60,15 @@ func TestLoadRejectsInvalidEnvironmentValues(t *testing.T) {
 
 func TestLoadValidatesHistoryLimit(t *testing.T) {
 	t.Setenv("CHAT_HISTORY_LIMIT", "0")
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("Load() error = nil, want validation error")
+	}
+}
+
+func TestLoadValidatesMessageLimit(t *testing.T) {
+	t.Setenv("WS_MESSAGE_LIMIT", "0")
 
 	_, err := Load()
 	if err == nil {
