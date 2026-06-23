@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/yankawai/go-chat/internal/build"
 	"github.com/yankawai/go-chat/internal/chat"
 	"github.com/yankawai/go-chat/internal/config"
 	httptransport "github.com/yankawai/go-chat/internal/transport/http"
@@ -39,6 +40,7 @@ func main() {
 
 	router := httptransport.NewRouter(httptransport.RouterConfig{
 		StaticDir: cfg.StaticDir,
+		BuildInfo: build.NewInfo(cfg.AppName),
 	}, wsHandler, logger.With("component", "http"))
 
 	server := &http.Server{
