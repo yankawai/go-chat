@@ -67,6 +67,7 @@ func TestLoadValidatesHistoryLimit(t *testing.T) {
 func TestLoadParsesCSVAndDurations(t *testing.T) {
 	t.Setenv("WS_ALLOWED_ORIGINS", "https://chat.example.com, http://localhost:8080")
 	t.Setenv("HTTP_READ_TIMEOUT", "3s")
+	t.Setenv("CHAT_BANNED_TERMS", "spam, scam")
 
 	cfg, err := Load()
 	if err != nil {
@@ -78,5 +79,8 @@ func TestLoadParsesCSVAndDurations(t *testing.T) {
 	}
 	if cfg.HTTP.ReadTimeout != 3*time.Second {
 		t.Fatalf("ReadTimeout = %s, want 3s", cfg.HTTP.ReadTimeout)
+	}
+	if got, want := len(cfg.Chat.BannedTerms), 2; got != want {
+		t.Fatalf("len(BannedTerms) = %d, want %d", got, want)
 	}
 }

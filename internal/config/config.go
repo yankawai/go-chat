@@ -44,6 +44,7 @@ type WebSocketConfig struct {
 
 type ChatConfig struct {
 	HistoryLimit int
+	BannedTerms  []string
 }
 
 func Load() (Config, error) {
@@ -109,6 +110,7 @@ func Load() (Config, error) {
 		},
 		Chat: ChatConfig{
 			HistoryLimit: historyLimit,
+			BannedTerms:  splitCSV(os.Getenv("CHAT_BANNED_TERMS")),
 		},
 	}
 
